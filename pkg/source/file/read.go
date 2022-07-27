@@ -85,9 +85,13 @@ func newReader(config ReaderConfig, watcher *Watcher) *Reader {
 }
 
 func (r *Reader) Stop() {
+	log.Info("[reader] stop")
 	r.stopOnce.Do(func() {
+		log.Info("[reader] in once stop")
 		close(r.done)
+		log.Info("[reader] close done")
 		r.countDown.Wait()
+		log.Info("[reader] clean data")
 		go r.cleanData()
 	})
 }
@@ -96,11 +100,15 @@ func (r *Reader) cleanData() {
 	timeout := time.NewTimer(r.config.CleanDataTimeout)
 	defer timeout.Stop()
 
+	log.Info("[reader] go cleanData")
+
 	for {
 		select {
 		case <-timeout.C:
 			return
 		case j := <-r.jobChan:
+			log.Info("[reader] watcher.decideJob")
+
 			r.watcher.decideJob(j)
 		}
 	}
@@ -117,9 +125,9 @@ func (r *Reader) Start() {
 
 func (r *Reader) work(index int) {
 	r.countDown.Add(1)
-	log.Info("read worker-%d start", index)
+	log.Info("read worker start %d", index)
 	defer func() {
-		log.Info("read worker-%d stop", index)
+		log.Info("read worker stop %d", index)
 		r.countDown.Done()
 	}()
 	readBufferSize := r.config.ReadBufferSize
@@ -130,8 +138,11 @@ func (r *Reader) work(index int) {
 	for {
 		select {
 		case <-r.done:
+			log.Info("read worker close done %d", index)
 			return
 		case job := <-jobs:
+			//log.Info("read worker jobs insert chan %d", index)
+
 			if ctx, err := NewJobCollectContextAndValidate(job, readBuffer, backlogBuffer); err == nil {
 				processChain.Process(ctx)
 			}

@@ -160,6 +160,7 @@ func (s *Source) Stop() {
 	}
 	log.Info("[%s] watch task stop", s.String())
 	// Stop reader
+	log.Info("[%s] begin to stop reader", s.String())
 	StopReader(s.isolation)
 	log.Info("[%s] reader stop", s.String())
 	// Stop multilineProcessor

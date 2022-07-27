@@ -177,12 +177,15 @@ func (w *Watcher) removeOsNotify(file string) {
 // The operations here should be as lightweight as possible.
 // Operations such as releasing file handles should be placed in a separate goroutine of watch
 func (w *Watcher) decideJob(job *Job) {
+	//log.Info("job decideJob by uid %s", job.uid)
+
 	job.Sync()
 
 	w.reportMetric(job)
 
 	// Stopped jobs are directly put into the zombie queue for release
 	if job.IsStop() {
+		//log.Info("job decideJob isStop by uid %s", job.uid)
 		w.zombieJobChan <- job
 		return
 	}

@@ -17,6 +17,7 @@ limitations under the License.
 package file
 
 import (
+	"github.com/loggie-io/loggie/pkg/core/log"
 	"sync"
 )
 
@@ -58,10 +59,14 @@ type Isolation struct {
 }
 
 func StopReader(isolation Isolation) {
+	log.Info("begin to stopReader by isolation %s", isolation.Level)
+
 	if isolation.Level == IsolationShare {
 		return
 	}
 	if isolation.Level == IsolationPipeline {
+		log.Info("stopReader IsolationPipeline")
+
 		pipelineReaderLock.Lock()
 		defer pipelineReaderLock.Unlock()
 		if r, ok := pipelineReaderMap[isolation.PipelineName]; ok {
@@ -71,6 +76,8 @@ func StopReader(isolation Isolation) {
 		return
 	}
 	if isolation.Level == IsolationSource {
+		log.Info("stopReader IsolationSource")
+
 		key := isolation.PipelineName + ":" + isolation.SourceName
 		sourceReaderLock.Lock()
 		defer sourceReaderLock.Unlock()

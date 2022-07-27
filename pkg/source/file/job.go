@@ -286,7 +286,9 @@ func (j *Job) IsSame(other *Job) bool {
 }
 
 func (j *Job) Read() {
+	//log.Info("job read by uid %s", j.uid)
 	j.task.activeChan <- j
+	//log.Info("job read after activeChan by uid %s", j.uid)
 }
 
 func (j *Job) File() *os.File {

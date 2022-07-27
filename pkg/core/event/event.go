@@ -176,18 +176,25 @@ func NewPool(capacity int, factory Factory) *Pool {
 }
 
 func (p *Pool) Get() api.Event {
-	p.lock.Lock()
-
-	for p.free == 0 {
-		p.cond.Wait()
-	}
-	p.free--
-	e := p.events[p.free]
-
-	p.lock.Unlock()
-
-	e.Release()
+	//log.Info("---- pool is free, make a new event")
+	e := &DefaultEvent{}
+	meta := NewDefaultMeta()
+	header := make(map[string]interface{})
+	e.Fill(meta, header, []byte{})
 	return e
+
+	//p.lock.Lock()
+	//
+	//for p.free == 0 {
+	//	p.cond.Wait()
+	//}
+	//p.free--
+	//e := p.events[p.free]
+	//
+	//p.lock.Unlock()
+	//
+	//e.Release()
+	//return e
 }
 
 func (p *Pool) GetN(n int) []api.Event {
@@ -208,23 +215,23 @@ func (p *Pool) GetN(n int) []api.Event {
 }
 
 func (p *Pool) Put(event api.Event) {
-	p.lock.Lock()
-
-	p.events[p.free] = event
-	p.free++
-	p.cond.Signal()
-
-	p.lock.Unlock()
+	//p.lock.Lock()
+	//
+	//p.events[p.free] = event
+	//p.free++
+	//p.cond.Signal()
+	//
+	//p.lock.Unlock()
 }
 
 func (p *Pool) PutAll(events []api.Event) {
-	p.lock.Lock()
-
-	for _, e := range events {
-		p.events[p.free] = e
-		p.free++
-	}
-	p.cond.Broadcast()
-
-	p.lock.Unlock()
+	//p.lock.Lock()
+	//
+	//for _, e := range events {
+	//	p.events[p.free] = e
+	//	p.free++
+	//}
+	//p.cond.Broadcast()
+	//
+	//p.lock.Unlock()
 }
