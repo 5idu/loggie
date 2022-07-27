@@ -37,8 +37,9 @@ var (
 	globalReader *Reader
 	readLock     sync.Mutex
 
-	pipelineReaderMap  = make(map[string]*Reader)
-	pipelineReaderLock sync.Mutex
+	//pipelineReaderMap  = make(map[string]*Reader)
+	pipelineReaderMap = sync.Map{}
+	//pipelineReaderLock sync.Mutex
 
 	sourceReaderMap  = make(map[string]*Reader)
 	sourceReaderLock sync.Mutex
@@ -67,11 +68,13 @@ func StopReader(isolation Isolation) {
 	if isolation.Level == IsolationPipeline {
 		log.Info("stopReader IsolationPipeline")
 
-		pipelineReaderLock.Lock()
-		defer pipelineReaderLock.Unlock()
-		if r, ok := pipelineReaderMap[isolation.PipelineName]; ok {
-			r.Stop()
-			delete(pipelineReaderMap, isolation.PipelineName)
+		//pipelineReaderLock.Lock()
+		//defer pipelineReaderLock.Unlock()
+		if r, ok := pipelineReaderMap.Load(isolation.PipelineName); ok {
+			re := r.(*Reader)
+			re.Stop()
+			pipelineReaderMap.Delete(isolation.PipelineName)
+			//delete(pipelineReaderMap, isolation.PipelineName)
 		}
 		return
 	}
@@ -91,18 +94,19 @@ func StopReader(isolation Isolation) {
 func GetOrCreateReader(isolation Isolation, readerConfig ReaderConfig, watcher *Watcher) *Reader {
 	if isolation.Level == IsolationPipeline {
 		pipelineName := isolation.PipelineName
-		r, ok := pipelineReaderMap[pipelineName]
+		r, ok := pipelineReaderMap.Load(pipelineName)
 		if ok {
-			return r
+			return r.(*Reader)
 		}
-		pipelineReaderLock.Lock()
-		defer pipelineReaderLock.Unlock()
-		r, ok = pipelineReaderMap[pipelineName]
+		//pipelineReaderLock.Lock()
+		//defer pipelineReaderLock.Unlock()
+		r, ok = pipelineReaderMap.Load(pipelineName)
 		if ok {
-			return r
+			return r.(*Reader)
 		}
 		reader := newReader(readerConfig, watcher)
-		pipelineReaderMap[pipelineName] = reader
+		//pipelineReaderMap[pipelineName] = reader
+		pipelineReaderMap.Store(pipelineName, reader)
 		return reader
 	}
 	if isolation.Level == IsolationSource {
