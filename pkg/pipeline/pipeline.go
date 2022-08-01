@@ -667,8 +667,8 @@ func (p *Pipeline) fillEventMetaAndHeader(e api.Event, config source.Config) {
 	// add header source fields from env
 	if len(config.FieldsFromEnv) > 0 {
 		for k, envKey := range config.FieldsFromEnv {
-			envVal, ok := p.envMap[envKey]
-			if !ok || len(envVal) == 0 {
+			envVal := os.Getenv(envKey)
+			if envVal == "" {
 				continue
 			}
 			if config.FieldsUnderRoot {
